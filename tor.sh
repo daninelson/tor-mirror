@@ -1,0 +1,45 @@
+#!/bin/bash
+
+echo "deb http://archive.ubuntu.com/ubuntu/ focal main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ focal main restricted universe multiverse
+
+deb http://archive.ubuntu.com/ubuntu/ focal-updates main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ focal-updates main restricted universe multiverse
+
+deb http://archive.ubuntu.com/ubuntu/ focal-security main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ focal-security main restricted universe multiverse
+
+deb http://archive.ubuntu.com/ubuntu/ focal-backports main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ focal-backports main restricted universe multiverse
+
+deb http://archive.canonical.com/ubuntu focal partner
+deb-src http://archive.canonical.com/ubuntu focal partner" > /etc/apt/sources.list
+
+apt update
+apt install gpg -y
+wait
+apt install apt-transport-https -y
+
+# Fixing certificate issue
+sudo apt update
+sudo apt install --reinstall ca-certificates -y
+wait
+curl https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/tor.gpg >/dev/null
+wait
+sudo rm /etc/apt/sources.list.d/tor.list
+echo "deb https://deb.torproject.org/torproject.org focal main" | sudo tee /etc/apt/sources.list.d/tor.list >/dev/null
+wait
+sudo apt update
+
+apt install tor deb.torproject.org-keyring -y
+
+echo "HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 127.0.0.1:80
+HiddenServicePort 443 127.0.0.1:443" >> /etc/tor/torrc
+
+service tor stop
+wait
+service tor start
+wait
+cat /var/lib/tor/hidden_service/hostname
+systemctl enable tor
