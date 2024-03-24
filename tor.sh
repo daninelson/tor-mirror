@@ -20,8 +20,8 @@ apt install gpg -y
 wait
 apt install apt-transport-https -y
 
+
 # Fixing certificate issue
-sudo apt update
 sudo apt install --reinstall ca-certificates -y
 wait
 curl https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/tor.gpg >/dev/null
@@ -30,12 +30,20 @@ sudo rm /etc/apt/sources.list.d/tor.list
 echo "deb https://deb.torproject.org/torproject.org focal main" | sudo tee /etc/apt/sources.list.d/tor.list >/dev/null
 wait
 sudo apt update
+wait
 
+echo "deb     [arch=amd64 signed-by=/usr/share/keyrings/tor-archive-keyring.gpg] https://deb.torproject.org/torproject.org focal main
+deb-src [arch=amd64 signed-by=/usr/share/keyrings/tor-archive-keyring.gpg] https://deb.torproject.org/torproject.org focal main" > /etc/apt/sources.list.d/tor.list
+
+wget -qO- https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --dearmor | tee /usr/share/keyrings/tor-archive-keyring.gpg >/dev/null
+wait
+apt update
 apt install tor deb.torproject.org-keyring -y
 
 echo "HiddenServiceDir /var/lib/tor/hidden_service/
 HiddenServicePort 80 127.0.0.1:80
 HiddenServicePort 443 127.0.0.1:443" >> /etc/tor/torrc
+
 
 service tor stop
 wait
@@ -43,3 +51,5 @@ service tor start
 wait
 cat /var/lib/tor/hidden_service/hostname
 systemctl enable tor
+wait
+cat /var/lib/tor/hidden_service/hostname
